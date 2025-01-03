@@ -2,6 +2,14 @@ ROOT = '''
 <html>
 <head>
     <title>KP-MSX</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap" rel="stylesheet">
+    <style>
+        .roboto {
+          font-family: "Roboto", serif;
+        }
+    </style>
 </head>
 <body>
     <pre>
@@ -18,12 +26,14 @@ ROOT = '''
                                                                 
                                                                 
     </pre>
-    <p>Это <b>неофициальный</b> кинопаб для Media Station X.</p>
-    <p>Чтобы этим пользоваться, введите <b><a id="host">адрес страницы</a></b> в Start Parameter (Плейлист) в настройках Media Station X</p>
-    <p>Чтобы попасть в настройки Media Station X, нажмите правую цветную кнопку на пульте</p>
-    <p>При возникновении проблем, вопросов, пожеланий, предложений при использовании этой версии не обращайтесь в поддержку кинопаба<p>
-    <p><b>Прочитайте, что написано <a href="https://github.com/slonopot/kp-msx">здесь</a>, и следуйте инструкциям</b></p>
-    <p style="display: none" id="render"><b>Эта версия может останавливаться при простое, при первом обращении сервис запустится снова через минуту. Если не грузится сразу, попробуйте еще раз.</b></p>
+    <span class="roboto">
+        <p>Это <b>неофициальный</b> кинопаб для Media Station X.</p>
+        <p>Чтобы этим пользоваться, введите <b><a id="host" style="white-space: nowrap;">адрес страницы</a></b> в Start Parameter (Плейлист) в настройках Media Station X</p>
+        <p>Чтобы попасть в настройки Media Station X, нажмите синюю цветную кнопку на пульте</p>
+        <p>При возникновении проблем, вопросов, пожеланий, предложений при использовании этой версии не обращайтесь в поддержку кинопаба<p>
+        <p><b>Прочитайте, что написано <a href="https://github.com/slonopot/kp-msx">здесь</a>, и следуйте инструкциям</b></p>
+        <p style="display: none" id="render"><b>Эта версия может останавливаться при простое, при первом обращении сервис запустится снова через минуту. Если не грузится сразу, попробуйте еще раз.</b></p>
+    </span>
     
     <script>
         var host = window.location.host;

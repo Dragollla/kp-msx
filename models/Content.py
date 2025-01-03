@@ -147,6 +147,15 @@ class Content:
 
         buttons = [watch_button] + buttons
 
+        stamp = ''
+        if self.rating:
+            stamp += f' {{ico:stars}} {self.rating}'
+        if self.year:
+            stamp += f' {{ico:calendar-month}} {self.year}'
+        stamp = stamp.strip()
+        if len(stamp) == 0:
+            stamp = None
+
         return {
             "type": "pages",
             "headline": self.title,
@@ -159,7 +168,7 @@ class Content:
                             "image": self.poster,
                             "imageFiller": "height-left",
                             'action': 'focus:plot',
-                            'stamp': f'{{ico:stars}} {self.rating}' if self.rating else None
+                            'stamp': stamp
                         },
                         {
                             "type": "default",

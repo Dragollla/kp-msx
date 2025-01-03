@@ -13,9 +13,13 @@ class Content:
         self.type = data.get('type')
         self.plot = data.get('plot')
         self.voice = data.get('voice')
+        self.cast = data.get('cast')
+        self.year = data.get('year')
 
         if self.voice:
-            self.plot += f'\nОзвучки: {self.voice}'
+            self.plot += f'\n\nОзвучки: {self.voice}'
+        if self.cast:
+            self.plot += f'\n\nВ ролях: {self.cast}'
 
         self.poster = (data.get('posters') or {}).get('big')
         self.rating = data.get('imdb_rating') or data.get('kinopoinsk_rating')
@@ -68,8 +72,13 @@ class Content:
         }
         if self.media is not None and self.type == 'serial':
             entry['titleFooter'] = self.media.to_subtitle()
-        elif self.rating:
-            entry['titleFooter'] = f'{{ico:stars}} {self.rating}'
+        else:
+            entry['titleFooter'] = ''
+            if self.rating:
+                entry['titleFooter'] += f' {{ico:stars}} {self.rating}'
+            if self.year:
+                entry['titleFooter'] += f' {{ico:calendar-month}} {self.year}'
+            entry['titleFooter'] = entry['titleFooter'].strip()
         return entry
 
     def msx_action(self):

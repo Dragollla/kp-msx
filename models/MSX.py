@@ -28,6 +28,15 @@ class MSX:
     @staticmethod
     def player_commit(data): return [{'action': f'player:commit', 'data': data}]
 
+    @staticmethod
+    def reload_panel(): return {
+            'response': {
+                'status': 200,
+                'data': {'action': 'reload:panel'}
+            }
+        }
+
+
     def __init__(self):
         pass
 
@@ -211,6 +220,18 @@ class MSX:
                     'data': {
                         'actions': MSX.DEFAULT_PLAYER_UPDATE_ACTIONS.copy() + actions
                     }
+                }
+            }
+        }
+
+    @classmethod
+    def update_panel(cls, content_id, value):
+        return {
+            'response': {
+                'status': 200,
+                'data': {
+                    'action': f'update:panel:{content_id}',
+                    'data': value
                 }
             }
         }

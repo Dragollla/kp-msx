@@ -95,6 +95,12 @@ class KinoPub:
             params['video'] = episode
         await self.api(f'/watching/toggle', params)
 
+    async def toggle_subscription(self, content_id):
+        await self.api('/watching/togglewatchlist', {'id': content_id})
+
+    async def toggle_bookmark(self, content_id, folder_id):
+        await self.api('/bookmarks/toggle-item', {'item': content_id, 'folder': folder_id}, method='POST')
+
     @staticmethod
     async def get_codes():
         params = {

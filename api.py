@@ -11,6 +11,7 @@ from functools import wraps
 
 import config
 from models.Category import Category
+from models.Content import Content
 from models.Device import Device
 from models.KinoPub import KinoPub
 from models.MSX import MSX
@@ -131,6 +132,13 @@ async def content(request: Request):
     return result.to_msx_panel()
 
 
+@app.get(ENDPOINT + '/content/bookmarks')
+async def content_bookmarks(request: Request):
+    result = await request.state.device.kp.get_single_content(request.query_params.get('content_id'))
+    folders = await request.state.device.kp.get_bookmark_folders()
+    return result.to_bookmarks_msx_panel(folders)
+
+
 @app.get(ENDPOINT + '/seasons')
 async def seasons(request: Request):
     result = await request.state.device.kp.get_single_content(request.query_params.get('content_id'))
@@ -189,6 +197,22 @@ async def play(request: Request):
             await request.state.device.kp.toggle_watched(content_id)
     acts = result.to_player_opts(season, episode)
     return MSX.play(acts)
+
+
+@app.post(ENDPOINT + '/toggle_subscription')
+async def toggle_subscription(request: Request):
+    content_id = request.query_params.get('content_id')
+    await request.state.device.kp.toggle_subscription(content_id)
+    result = await request.state.device.kp.get_single_content(request.query_params.get('content_id'))
+    return MSX.update_panel(Content.SUBSCRIPTION_BUTTON_ID, result.to_subscription_button())
+
+
+@app.post(ENDPOINT + '/toggle_bookmark')
+async def toggle_bookmark(request: Request):
+    content_id = request.query_params.get('content_id')
+    folder_id = int(request.query_params.get('folder_id'))
+    await request.state.device.kp.toggle_bookmark(content_id, folder_id)
+    return MSX.reload_panel()
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=int(config.PORT))

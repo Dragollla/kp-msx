@@ -1,4 +1,5 @@
 import config
+from models.Folder import Folder
 from models.MSX import MSX
 from models.Season import Season
 
@@ -15,6 +16,7 @@ class Content:
         self.voice = data.get('voice')
         self.cast = data.get('cast')
         self.year = data.get('year')
+        self.subscribed = data.get('subscribed')
 
         if self.voice:
             self.plot += f'\n\nОзвучки: {self.voice}'
@@ -23,6 +25,11 @@ class Content:
 
         self.poster = (data.get('posters') or {}).get('big')
         self.rating = data.get('imdb_rating') or data.get('kinopoinsk_rating')
+
+        self.bookmarks = data.get('bookmarks')
+        if self.bookmarks is not None and isinstance(self.bookmarks, list):
+            self.bookmarks = [Folder(i).id for i in self.bookmarks]
+
         self.video = None
 
         self.watched = data.get('watched') == 1
@@ -87,7 +94,59 @@ class Content:
         if self.seasons is not None:
             return f"panel:{config.MSX_HOST}/msx/seasons?id={{ID}}&content_id={self.id}"
 
+    SUBSCRIPTION_BUTTON_ID = "subscription_button"
+    BOOKMARK_BUTTON_ID = "bookmark_button"
+
+    def to_subscription_button(self):
+        if self.subscribed:
+            label = "{ico:msx-yellow:new-releases}"
+        else:
+            label = "{ico:msx-white:new-releases}"
+        button = {
+            "id": self.SUBSCRIPTION_BUTTON_ID,
+            "type": "button",
+            "layout": f"6,5,1,1",
+            "label": label,
+            'action': f'execute:{config.MSX_HOST}/msx/toggle_subscription?content_id={self.id}&id={{ID}}',
+        }
+
+        return button
+
+    def to_bookmark_button(self):
+        if self.in_bookmarks():
+            label = "{ico:msx-yellow:bookmark}"
+        else:
+            label = "{ico:msx-white:bookmark}"
+
+        button = {
+            "id": self.BOOKMARK_BUTTON_ID,
+            "type": "button",
+            "layout": f"7,5,1,1",
+            "label": label,
+            'action': f'panel:{config.MSX_HOST}/msx/content/bookmarks?id={{ID}}&content_id={self.id}'
+        }
+
+        return button
+
     def to_msx_panel(self):
+        buttons = []
+
+        if self.type == 'serial':
+            buttons.append(self.to_subscription_button())
+
+        buttons.append(self.to_bookmark_button())
+
+        watch_button = {
+            "type": "button",
+            "layout": f"4,5,{4-len(buttons)},1",
+            "label": "Смотреть",
+            'focus': True,
+            'action': self.msx_action(),
+            # 'properties': self.subtitle_tracks
+        }
+
+        buttons = [watch_button] + buttons
+
         return {
             "type": "pages",
             "headline": self.title,
@@ -108,16 +167,8 @@ class Content:
                             #"headline": self.title,
                             "text": self.plot,
                             'action': 'focus:plot'
-                        },
-                        {
-                            "type": "button",
-                            "layout": "4,5,4,1",
-                            "label": "Смотреть",
-                            'focus': True,
-                            'action': self.msx_action(),
-                            #'properties': self.subtitle_tracks
                         }
-                    ]
+                    ] + buttons
                 }, {
                     'items': [
                         {
@@ -185,3 +236,31 @@ class Content:
             acts += MSX.player_update_title(_episode.player_title())
             #acts += MSX.player_commit(_episode.subtitle_tracks)
         return acts
+
+    def in_bookmarks(self):
+        return self.bookmarks is not None and len(self.bookmarks) > 0
+
+    def to_bookmark_check(self, folder_id):
+        return '{ico:check}' if folder_id in self.bookmarks else None
+
+    def to_bookmarks_msx_panel(self, folders: 'list[Folder]'):
+        entry = {
+            "type": "list",
+            "headline": 'Закладки',
+            "template": {
+                'enumerate': False,
+                "type": "button",
+                'layout': "0,0,4,1",
+                'stampColor': 'msx-glass'
+            },
+            "items": []
+        }
+        for folder in folders:
+            entry['items'].append({
+                "id": str(folder.id),
+                "label": folder.title,
+                "action": f'execute:{config.MSX_HOST}/msx/toggle_bookmark?content_id={self.id}&folder_id={folder.id}&id={{ID}}',
+                'stamp': self.to_bookmark_check(folder.id),
+            })
+        return entry
+

@@ -240,6 +240,12 @@ class Content:
     def in_bookmarks(self):
         return self.bookmarks is not None and len(self.bookmarks) > 0
 
+    def to_bookmark_stamp(self, folder_id):
+        return {
+            'stampColor': 'msx-glass' if folder_id in self.bookmarks else 'transparent',
+            'stamp': '{ico:check}' if folder_id in self.bookmarks else '{ico:blank}'
+        }
+
     def to_bookmarks_msx_panel(self, folders: 'list[Folder]'):
         entry = {
             "type": "list",
@@ -248,16 +254,16 @@ class Content:
                 'enumerate': False,
                 "type": "button",
                 'layout': "0,0,4,1",
-                'stampColor': 'msx-glass'
             },
             "items": []
         }
         for folder in folders:
-            entry['items'].append({
+            subentry = {
                 "id": str(folder.id),
                 "label": folder.title,
-                "action": f'[execute:{config.MSX_HOST}/msx/toggle_bookmark?content_id={self.id}&folder_id={folder.id}&id={{ID}}|reload:panel]',
-                'stamp': '{ico:check}' if folder.id in self.bookmarks else None
-            })
+                "action": f'execute:{config.MSX_HOST}/msx/toggle_bookmark?content_id={self.id}&folder_id={folder.id}&id={{ID}}'
+            }
+            subentry.update(self.to_bookmark_stamp(folder.id))
+            entry['items'].append(subentry)
         return entry
 

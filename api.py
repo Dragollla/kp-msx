@@ -203,7 +203,7 @@ async def play(request: Request):
 async def toggle_subscription(request: Request):
     content_id = request.query_params.get('content_id')
     await request.state.device.kp.toggle_subscription(content_id)
-    result = await request.state.device.kp.get_single_content(request.query_params.get('content_id'))
+    result = await request.state.device.kp.get_single_content(content_id)
     return MSX.update_panel(Content.SUBSCRIPTION_BUTTON_ID, result.to_subscription_button())
 
 
@@ -212,7 +212,9 @@ async def toggle_bookmark(request: Request):
     content_id = request.query_params.get('content_id')
     folder_id = int(request.query_params.get('folder_id'))
     await request.state.device.kp.toggle_bookmark(content_id, folder_id)
-    return MSX.empty_response()
+    result = await request.state.device.kp.get_single_content(content_id)
+    upd = result.to_bookmark_stamp(folder_id)
+    return MSX.update_panel(str(folder_id), upd)
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=int(config.PORT))

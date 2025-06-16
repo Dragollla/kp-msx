@@ -46,7 +46,13 @@ class MSX:
             'name': 'kino.pub',
             'version': '6.6.6',
             'parameter': f'menu:{config.MSX_HOST}/msx/menu?id={{ID}}',
-            'welcome': 'none'
+            'welcome': 'none',
+            'launcher': {
+                "parameter": f'menu:{config.MSX_HOST}/msx/menu?id={{ID}}',
+                "icon": "movie-filter",
+                "image": "none",
+                "color": "none"
+            }
         }
 
     @staticmethod

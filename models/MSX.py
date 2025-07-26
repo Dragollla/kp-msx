@@ -166,9 +166,14 @@ class MSX:
                     'title': 'Популярные',
                     'icon': 'thumb-up',
                     'action': f'content:request:interaction:{config.MSX_HOST}/msx/category?id={{ID}}&category={category}&extra=popular&offset={{OFFSET}}&limit={{LIMIT}}|20@http://msx.benzac.de/interaction/paging.html'
+                },
+                {
+                    'title': 'Жанры',
+                    'icon': 'category',
+                    'action': f'content:{config.MSX_HOST}/msx/genres?id={{ID}}&category={category}'
                 }
             ]
-            entries = entries[:17]
+            entries = entries[:(20 - len(resp['items']))]
         for entry in entries:
             resp['items'].append(entry.to_msx())
 
@@ -178,13 +183,26 @@ class MSX:
     def bookmark_folders(result):
         return {
             "type": "list",
-            "headline": "Template",
+            "headline": "Закладки",
             "template": {
                 "type": "separate",
                 "layout": "0,0,4,1",
                 "color": "msx-glass",
             },
             "items": [i.to_msx() for i in result]
+        }
+
+    @staticmethod
+    def genre_folders(category, result):
+        return {
+            "type": "list",
+            "headline": "Жанры",
+            "template": {
+                "type": "separate",
+                "layout": "0,0,4,1",
+                "color": "msx-glass",
+            },
+            "items": [i.to_msx(category) for i in result]
         }
 
     @classmethod

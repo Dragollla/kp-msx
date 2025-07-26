@@ -103,8 +103,17 @@ async def category(request: Request):
     page = int(offset) // 20 + 1
     cat = request.query_params.get('category')
     extra = request.query_params.get('extra')
-    result = await request.state.device.kp.get_content(cat, page=page, extra=extra)
-    result = MSX.content(result, cat, page, extra=extra)
+    genre = request.query_params.get('genre')
+    result = await request.state.device.kp.get_content(cat, page=page, extra=extra, genre=genre)
+    result = MSX.content(result, cat, page, extra=(extra or genre))
+    return result
+
+
+@app.get(ENDPOINT + '/genres')
+async def category(request: Request):
+    cat = request.query_params.get('category')
+    result = await request.state.device.kp.get_genres(category=cat)
+    result = MSX.genre_folders(cat, result)
     return result
 
 

@@ -5,6 +5,7 @@ from models.Category import Category
 from models.Channel import Channel
 from models.Content import Content
 from models.Folder import Folder
+from models.Genre import Genre
 from models.Media import Media
 from util import db
 
@@ -38,11 +39,20 @@ class KinoPub:
             return None
         return [Category(i) for i in result['items']]
 
-    async def get_content(self, category, page=1, extra=None):
+    async def get_genres(self, category=None):
+        result = await self.api('/genres', params={'type': category})
+        if result is None:
+            return None
+        return [Genre(i) for i in result['items']]
+
+    async def get_content(self, category, page=1, extra=None, genre=None):
         path = '/items'
         if extra is not None:
             path += f'/{extra}'
-        result = await self.api(path, params={'type': category, 'page': page})
+        params = {'type': category, 'page': page}
+        if genre is not None:
+            params['genre'] = genre
+        result = await self.api(path, params=params)
         if result is None:
             return []
         results = [Content(i) for i in result['items']]

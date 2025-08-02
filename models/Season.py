@@ -21,7 +21,7 @@ class Season:
                 "playerLabel": episode.player_title(),
                 'action': episode.msx_action(),
                 'stamp': '{ico:check}' if episode.watched else None,
-                'resumeKey': episode.player_title(),
+                'resumeKey': str(self.content_id) + ' ' + episode.player_title(),
                 'triggerReady': episode.trigger_ready()
             }
             items.append(entry)

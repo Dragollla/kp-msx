@@ -260,3 +260,73 @@ class MSX:
 
         return resp
 
+    @staticmethod
+    def handle_exception():
+        return {
+            "menu": [{
+                "label": "¯\\_(ツ)_/¯",
+                "data": f"{config.MSX_HOST}/msx/error?id={{ID}}"
+            }],
+            "type": "pages",
+            "headline": "Ошибка",
+            "pages": [
+                {
+                    "items": [
+                        {
+                            "type": "space",
+                            "layout": "0,0,6,2",
+                            "title": 'Произошла ошибка загрузки',
+                            "titleFooter": 'Скорее всего, кинопаб сейчас недоступен. Проверьте статус на kinopub.online и ожидайте ремонта.'
+                        }, {
+                            "type": "button",
+                            "layout": "0,2,6,1",
+                            "label": "Перезапустить",
+                            "action": f"reload"
+                        }
+                    ]
+                }
+            ]
+        }
+
+    @staticmethod
+    def unsupported_version():
+        return {
+            "menu": [{
+                "label": "¯\\_(ツ)_/¯",
+                "data": f"{config.MSX_HOST}/msx/too_old?id={{ID}}"
+            }],
+            "type": "pages",
+            "headline": "Ошибка",
+            "pages": [
+                {
+                    "items": [
+                        {
+                            "type": "space",
+                            "layout": "0,0,6,2",
+                            "title": 'Старая версия MSX',
+                            "titleFooter": 'Используемая версия MSX слишком старая. Выберите один из параметров ниже для обновления. При выборе версии web.msx.benzac.de используйте вариант HTTPS. После обновления настройте кинопаб снова.'
+                        }, {
+                            "type": "button",
+                            "layout": "0,2,6,1",
+                            "label": "Параметр id:web",
+                            "action": f"start",
+                            "data": {
+                                "name": "id:web",
+                                "version": "2.0.3",
+                                "parameter": "content:https://msx.benzac.de/services/web.php"
+                            }
+                        }, {
+                            "type": "button",
+                            "layout": "0,3,6,1",
+                            "label": "Параметр web.msx.benzac.de",
+                            "action": f"start",
+                            "data": {
+                                'name': 'web.msx.benzac.de',
+                                'version': '1.0.2',
+                                'parameter': "content:http://web.msx.benzac.de/msx/start.json",
+                            }
+                        }
+                    ]
+                }
+            ]
+        }

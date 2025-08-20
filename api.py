@@ -35,20 +35,31 @@ async def auth(request: Request, call_next):
     if request.method == 'OPTIONS':
         return await call_next(request)
     device_id = request.query_params.get('id')
+
     if device_id is None and str(request.url.path) not in UNAUTHORIZED:
-        return JSONResponse({
+        result = JSONResponse({
             'response': {
                 'status': 200,
                 'data': {'action': 'warn:ID не может быть пустым'}
             }
         })
+        result.headers['Access-Control-Allow-Credentials'] = 'true'
+        result.headers['Access-Control-Allow-Origin'] = '*'
+        return result
+
+    if device_id == '{ID}' and str(request.url.path) not in UNAUTHORIZED:
+        result = JSONResponse(MSX.unsupported_version())
+        result.headers['Access-Control-Allow-Credentials'] = 'true'
+        result.headers['Access-Control-Allow-Origin'] = '*'
+        return result
+
     request.state.device = Device.by_id(device_id)
     if request.state.device is None and device_id is not None:
         request.state.device = Device.create(device_id)
     try:
         result = await call_next(request)
     except Exception as e:
-        result = JSONResponse({'success': False, 'error': f'{type(e)}: {e}'})
+        result = JSONResponse(MSX.handle_exception())
         result.headers['Access-Control-Allow-Credentials'] = 'true'
         result.headers['Access-Control-Allow-Origin'] = '*'
         traceback.print_exc()
@@ -238,6 +249,14 @@ async def toggle_bookmark(request: Request):
     result = await request.state.device.kp.get_single_content(content_id)
     upd = result.to_bookmark_stamp(folder_id)
     return MSX.update_panel(str(folder_id), upd)
+
+@app.get(ENDPOINT + '/error')
+async def error_page(request: Request):
+    return MSX.handle_exception()
+
+@app.get(ENDPOINT + '/too_old')
+async def too_old(request: Request):
+    return MSX.unsupported_version()
 
 if __name__ == '__main__':
     uvicorn.run(app, host='0.0.0.0', port=int(config.PORT))

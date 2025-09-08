@@ -1,5 +1,7 @@
 from urllib.parse import urlencode
 
+from pydantic import constr
+
 import config
 
 
@@ -44,7 +46,10 @@ class Episode:
         return f'[S{self.season}/E{self.n}] {self.title}'
 
     def msx_action(self):
-        return f'video:plugin:{config.PLAYER}?url={self.video}'
+        if config.TIZEN:
+            return f'video:{self.video}'
+        else:
+            return f'video:plugin:{config.PLAYER}?url={self.video}'
 
     def trigger_ready(self):
         params = {

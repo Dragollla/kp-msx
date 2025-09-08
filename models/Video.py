@@ -28,4 +28,7 @@ class Video:
         return entry
 
     def msx_action(self):
-        return f"video:plugin:{config.PLAYER}?url={self.video}"
+        if config.TIZEN:
+            return f'video:{self.video}'
+        else:
+            return f"video:plugin:{config.PLAYER}?url={self.video}"

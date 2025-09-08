@@ -12,10 +12,14 @@ class Channel:
         self.stream = data.get('stream')
 
     def to_msx(self):
+        if config.TIZEN:
+            action = f'video:{self.stream}'
+        else:
+            action = f"video:plugin:{config.PLAYER}?url={self.stream}"
         entry = {
             'title': self.title,
             'playerLabel': self.title,
             'image': self.logo,
-            "action": f"video:plugin:{config.PLAYER}?url={self.stream}"
+            "action": action
         }
         return entry

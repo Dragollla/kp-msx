@@ -79,6 +79,13 @@ class KinoPub:
             return None
         return [Folder(i) for i in result['items']]
 
+    async def get_content_folders(self, content_id):
+        req = {'item': content_id}
+        result = await self.api(f'/bookmarks/get-item-folders', req)
+        if result is None:
+            return None
+        return [Folder(i) for i in result['folders']]
+
     async def get_bookmark_folder(self, id, page=1):
         result = await self.api(f'/bookmarks/{id}', {'page': page})
         if result is None:

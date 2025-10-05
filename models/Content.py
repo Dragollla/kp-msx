@@ -44,6 +44,9 @@ class Content:
             self.poster = (data.get('posters') or {}).get('big')
             self.seasons = [Season(i, self.id) for i in seasons]
 
+    def update_bookmarks(self, folders):
+        self.bookmarks = [i.id for i in folders]
+
     def to_msx(self):
         entry = {
             'title': self.title,

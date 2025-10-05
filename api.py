@@ -180,6 +180,10 @@ async def content(request: Request):
 @app.get(ENDPOINT + '/content/bookmarks')
 async def content_bookmarks(request: Request):
     result = await request.state.device.kp.get_single_content(request.query_params.get('content_id'))
+
+    content_folders = await request.state.device.kp.get_content_folders(request.query_params.get('content_id'))
+    result.update_bookmarks(content_folders)
+
     folders = await request.state.device.kp.get_bookmark_folders()
     return result.to_bookmarks_msx_panel(folders)
 
@@ -257,6 +261,10 @@ async def toggle_bookmark(request: Request):
     folder_id = int(request.query_params.get('folder_id'))
     await request.state.device.kp.toggle_bookmark(content_id, folder_id)
     result = await request.state.device.kp.get_single_content(content_id)
+
+    content_folders = await request.state.device.kp.get_content_folders(request.query_params.get('content_id'))
+    result.update_bookmarks(content_folders)
+
     upd = result.to_bookmark_stamp(folder_id)
     return MSX.update_panel(str(folder_id), upd)
 

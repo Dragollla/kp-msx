@@ -12,6 +12,8 @@ class Season:
         self.id = data.get('id')
         self.episodes = [Episode(i, content_id, self.n) for i in data.get('episodes')]
 
+        self.watched = self._watched()
+
     def to_episode_pages(self):
         items = []
         for i, episode in enumerate(self.episodes):
@@ -22,7 +24,14 @@ class Season:
                 'action': episode.msx_action(),
                 'stamp': '{ico:check}' if episode.watched else None,
                 'resumeKey': str(self.content_id) + ' ' + episode.player_title(),
-                'triggerReady': episode.trigger_ready()
+                'triggerReady': episode.trigger_ready(),
+                'focus': not episode.watched
             }
             items.append(entry)
         return items
+
+    def _watched(self):
+        watched = True
+        for episode in self.episodes:
+            watched = watched and episode.watched
+        return watched

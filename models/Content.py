@@ -194,13 +194,17 @@ class Content:
                 'enumerate': False,
                 "type": "button",
                 'layout': "0,0,2,1",
+                'stampColor': 'msx-glass',
             },
             "items": []
         }
+
         for season in self.seasons:
             entry['items'].append({
                 "label": f"Cезон {season.n}",
-                "action": f'panel:{config.MSX_HOST}/msx/episodes?id={{ID}}&content_id={self.id}&season={season.n}'
+                "action": f'panel:{config.MSX_HOST}/msx/episodes?id={{ID}}&content_id={self.id}&season={season.n}',
+                'stamp': '{ico:check}' if season.watched else None,
+                'focus': not season.watched
             })
         return entry
 

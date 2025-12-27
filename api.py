@@ -104,7 +104,7 @@ async def menu(request: Request):
     for category in categories:
         if category.id in request.state.device.settings.menu_blacklist:
             category.blacklisted = True
-    return msx.registered_menu(categories)
+    return msx.registered_menu(categories, request.state.device.settings)
 
 
 @app.get(ENDPOINT + '/registration')
@@ -278,20 +278,51 @@ async def toggle_bookmark(request: Request):
 
 @app.get(ENDPOINT + '/settings/menu_entries')
 async def menu_entries(request: Request):
-    pass
+    categories = await request.state.device.kp.get_content_categories()
+    categories += Category.static_categories()
+    for category in categories:
+        if category.id in request.state.device.settings.menu_blacklist:
+            category.blacklisted = True
 
-@app.post(ENDPOINT + '/settings/toggle_4k')
-async def settings_toggle_4k(request: Request):
-    await request.state.device.toggle_4k()
+    entry = msx.menu_entries_settings_panel(categories)
+    return entry
 
-@app.post(ENDPOINT + '/settings/toggle_proxy')
-async def settings_toggle_proxy(request: Request):
-    await request.state.device.toggle_proxy()
+@app.post(ENDPOINT + '/settings/toggle/{setting}')
+async def settings_toggle_proxy(request: Request, setting: str):
+    match setting:
+        case msx.FOURK_ID:
+            await request.state.device.toggle_4k()
+            return msx.update_panel(msx.FOURK_ID, msx.stamp(request.state.device.settings.fourk))
+        case msx.HDR_ID:
+            await request.state.device.toggle_hdr()
+            return msx.update_panel(msx.HDR_ID, msx.stamp(request.state.device.settings.hdr))
+        case msx.HEVC_ID:
+            await request.state.device.toggle_hevc()
+            return msx.update_panel(msx.HEVC_ID, msx.stamp(request.state.device.settings.hevc))
+        case msx.MIXED_PLAYLIST_ID:
+            await request.state.device.toggle_mixed_playlist()
+            return msx.update_panel(msx.MIXED_PLAYLIST_ID, msx.stamp(request.state.device.settings.mixed_playlist))
+        case msx.SERVER_ID:
+            new_label = await request.state.device.toggle_server()
+            return msx.update_panel(msx.SERVER_ID, msx.label(new_label))
+        case msx.PROXY_ID:
+            await request.state.device.toggle_proxy()
+            return msx.update_panel(msx.PROXY_ID, msx.stamp(request.state.device.settings.proxy))
+        case _:
+            return msx.empty_response()
 
-@app.post(ENDPOINT + '/settings/toggle_menu_entry_blacklist')
-async def settings_toggle_menu_entry_blacklist(request: Request):
-    entry = request.query_params.get('entry')
-    await request.state.device.toggle_proxy()
+
+@app.post(ENDPOINT + '/settings/toggle_menu_entry/{menu_entry}')
+async def toggle_menu_entry(request: Request, menu_entry :str):
+    current_state = request.state.device.toggle_menu_entry(menu_entry)
+    update = msx.update_panel(menu_entry, msx.stamp(current_state))
+    return update
+
+
+@app.post(ENDPOINT + '/settings/reset_menu')
+async def toggle_menu_entry(request: Request):
+    request.state.device.reset_menu()
+    return msx.restart()
 
 # Errors
 

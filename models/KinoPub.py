@@ -7,7 +7,9 @@ from models.Content import Content
 from models.Folder import Folder
 from models.Genre import Genre
 from models.Media import Media
+from models.Reference import Reference
 from util import db
+from util.msx import LENNY
 
 
 class KinoPub:
@@ -117,7 +119,7 @@ class KinoPub:
         return [Channel(i) for i in result['channels']]
 
     async def notify(self, device_id):
-        await self.api(f'/device/notify', {'title': "KP-MSX", 'hardware': '¯\\_(ツ)_/¯', 'software': device_id}, method='POST')
+        await self.api(f'/device/notify', {'title': "KP-MSX", 'hardware': LENNY, 'software': device_id}, method='POST')
 
     async def toggle_watched(self, content_id, season=None, episode=None):
         params = {'id': content_id}
@@ -132,6 +134,20 @@ class KinoPub:
 
     async def toggle_bookmark(self, content_id, folder_id):
         await self.api('/bookmarks/toggle-item', {'item': content_id, 'folder': folder_id}, method='POST')
+
+    async def get_current_device_info(self):
+        data = await self.api('/device/info')
+        from models.Device import Device
+        return Device(data.get('device', {}))
+
+    FOURK_SETTING = 'support4k'
+    HEVC_SETTING = 'supportHevc'
+    HDR_SETTING = 'supportHdr'
+    MIXED_PLAYLIST_SETTING = 'mixedPlaylist'
+    SERVER_LOCATION_SETTING = 'serverLocation'
+
+    async def update_device_setting(self, device_id: int, name: str, value: 'bool | int'):
+        await self.api(f'/device/{device_id}/settings', {name: value}, 'POST')
 
     @staticmethod
     async def get_codes():
@@ -178,4 +194,8 @@ class KinoPub:
             self.refresh = result['refresh_token']
 
             return True
+
+    async def get_available_servers(self):
+        result = await self.api('/references/server-location')
+        return [Reference(i) for i in result.get('items', [])]
 

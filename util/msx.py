@@ -1,6 +1,9 @@
 from urllib.parse import urlencode
-
 import config
+from models.DeviceSettings import DeviceSettings
+
+LENNY =  "¯\\_(ツ)_/¯"
+SAD_LENNY = "(◡︵◡)"
 
 
 def format_action(path: str, params: dict = None, interaction: str = None, options: str = None, module: str = None):
@@ -62,20 +65,48 @@ def unregistered_menu():
     }
 
 
-def registered_menu(categories):
+def registered_menu(categories: 'List[Category]', device_settings: 'DeviceSettings'):
     menu = [category.to_msx() for category in categories or [] if not category.blacklisted]
-
+    if len(menu) == 0:
+        menu = [sad_screen()]
     entry = {
         "reuse": False,
         "cache": False,
         "restore": False,
         "refocus": 1,
         "headline": "kino.pub",
-        "options": settings_menu(),
+        "options": settings_menu(device_settings),
         "menu": menu,
     }
     return entry
 
+def sad_screen():
+    return {
+        "type": "default",
+        "label": SAD_LENNY,
+        "data": {
+            "type": "pages",
+            "headline": SAD_LENNY,
+            "pages": [
+                {
+                    "items": [
+                        {
+                            "type": "space",
+                            "layout": "0,0,6,2",
+                            "title": 'Вот так вот',
+                            "titleFooter": 'Вы выключили все разделы меню, поэтому теперь здесь ничего нет.'
+                        },
+                        {
+                            "type": "button",
+                            "layout": "0,2,6,1",
+                            "label": "Вернуть назад",
+                            "action": format_action('/msx/settings/reset_menu', module='execute')
+                        }
+                    ],
+                }
+            ]
+        }
+    }
 
 def already_registered():
     return {
@@ -97,21 +128,23 @@ def registration(user_code):
     return {
         "type": "pages",
         "headline": "Регистрация",
-        "pages": [{
-            "items": [
-                {
-                    "type": "space",
-                    "layout": "0,0,6,2",
-                    "title": user_code,
-                    "titleFooter": 'Используйте этот код для добавления устройства на kino.pub или зеркале, после ввода кода нажмите кнопку "Я ввел код".'
-                },
-                {
-                    "type": "button",
-                    "layout": "0,2,6,1",
-                    "label": "Я ввёл код",
-                    "action": format_action('/msx/check_registration', module='execute')
-                }]
-        }]
+        "pages": [
+            {
+                "items": [
+                    {
+                        "type": "space",
+                        "layout": "0,0,6,2",
+                        "title": user_code,
+                        "titleFooter": 'Используйте этот код для добавления устройства на kino.pub или зеркале, после ввода кода нажмите кнопку "Я ввел код".'
+                    }, {
+                        "type": "button",
+                        "layout": "0,2,6,1",
+                        "label": "Я ввёл код",
+                        "action": format_action('/msx/check_registration', module='execute')
+                    }
+                ]
+            }
+        ]
     }
 
 
@@ -185,7 +218,7 @@ def genre_folders(category, result):
     }
 
 
-def update_panel(cls, content_id, value):
+def update_panel(content_id, value):
     return {
         'response': {
             'status': 200,
@@ -273,7 +306,7 @@ def handle_exception(error_page=False):
 
     return {
         "menu": [{
-            "label": "¯\\_(ツ)_/¯",
+            "label": LENNY,
             "data": format_action('/msx/error')
         }],
         "type": "pages",
@@ -289,7 +322,7 @@ def handle_exception(error_page=False):
 def unsupported_version():
     return {
         "menu": [{
-            "label": "¯\\_(ツ)_/¯",
+            "label": LENNY,
             "data": format_action('/msx/too_old')
         }],
         "type": "pages",
@@ -336,7 +369,16 @@ def player_action_btn():
         return 'panel:request:player:options'
 
 
-def settings_menu():
+FOURK_ID = 'fourk'
+HDR_ID = 'hdr'
+HEVC_ID = 'hevc'
+MIXED_PLAYLIST_ID = 'mixed_playlist'
+SERVER_ID = 'server'
+PROXY_ID = 'proxy'
+MENU_ID = 'menu'
+HELP_ID = 'help'
+
+def settings_menu(device_settings: 'DeviceSettings'):
     return {
         "headline": "Настройки",
         "caption": "/{ico:msx-blue:stop}Настройки",
@@ -346,43 +388,15 @@ def settings_menu():
             "layout": "0,0,4,1"
         },
         "items": [
-             {
-                "label": "4К",
-                'action': '[]',
-                "selection": {
-                    "action": "update:panel:info",
-                    "data": {
-                        "headline": "Выключатель 4К. Если телевизор старый, слабый или дешёвый, то лучше не включать."
-                    }
-                }
-            }, {
-                "label": "Прокси для плейлиста",
-                'action': '[]',
-                "selection": {
-                    "action": "update:panel:info",
-                    "data": {
-                        "headline": "Включите, если видео не загружаются вообще (нет длительности, нет дорожек и субтитров в настройках плеера)."
-                    }
-                }
-            }, {
-                "label": "Пункты меню",
-                'action': '[]',
-                "selection": {
-                    "action": "update:panel:info",
-                    "data": {
-                        "headline": "Здесь можно выключить или включить разделы главного меню слева."
-                    }
-                }
-            }, {
-                "label": "Справка",
-                'action': '[]',
-                "selection": {
-                    "action": "update:panel:info",
-                    "data": {
-                        "headline": "https://github.com/slonopot/kp-msx"
-                    }
-                }
-            }, {
+            device_settings.to_fourk_msx_button(),
+            device_settings.to_hdr_msx_button(),
+            device_settings.to_hevc_msx_button(),
+            device_settings.to_mixed_playlist_msx_button(),
+            device_settings.to_server_msx_button(),
+            device_settings.to_proxy_msx_button(),
+            device_settings.to_menu_msx_button(),
+            device_settings.to_help_msx_button(),
+            {
                 'type': 'space',
                 'id': 'info',
                 'offset': '0,0,4,1',
@@ -391,3 +405,39 @@ def settings_menu():
             }
         ]
     }
+
+def stamp(cond):
+    return {
+        'stampColor': 'msx-glass' if cond else 'transparent',
+        'stamp': '{ico:check}' if cond else '{ico:blank}'
+    }
+
+def label(text):
+    return {'label': text}
+
+def settings_button(id, label, action, hint):
+    return {
+        'id': id,
+        "label": label,
+        'action': action,
+        "selection": {
+            "action": "update:panel:info",
+            "data": {
+                "headline": hint
+            }
+        }
+    }
+
+
+def menu_entries_settings_panel(categories: 'List[Category]'):
+    return {
+            "type": "list",
+            "headline": 'Пункты меню',
+            'template': {
+                'enumerate': False,
+                "type": "button",
+                "layout": f"0,0,4,1",
+                'stampColor': 'msx-glass',
+            },
+            "items": [i.to_msx_settings_button() for i in categories if not i.ignored]
+        }

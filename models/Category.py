@@ -20,6 +20,7 @@ class Category:
         self.id = data.get('id')
         self.title = data.get('title')
         self.blacklisted = self.id in Category.BLACKLIST or blacklisted
+        self.ignored = self.id in Category.BLACKLIST
 
         self.path = data.get('path')
         self.icon = data.get('icon')
@@ -44,8 +45,16 @@ class Category:
             "label": self.title,
             "icon": self.icon,
             "data": msx.format_action(self.path, params=self.params, interaction=self.interaction, options=self.options)
-            #"data": f"{config.MSX_HOST}/msx/category?id={{ID}}&category={self.id}&page={{PAGE}}@{config.MSX_HOST}/paging.html"
         }
+
+    def to_msx_settings_button(self):
+        entry = {
+            'id': self.id,
+            "label": self.title,
+            'action': msx.format_action(f'/msx/settings/toggle_menu_entry/{self.id}', module='execute')
+        }
+        entry.update(msx.stamp(not self.blacklisted))
+        return entry
 
     @classmethod
     def static_categories(cls):

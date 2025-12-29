@@ -35,7 +35,7 @@ class Content:
         self.videos = None
 
         if (videos := data.get('videos')) is not None:
-           self.videos = [Video(i) for i in videos]
+           self.videos = [Video(i, self.id, self.title) for i in videos]
 
         self.seasons = None
 
@@ -128,23 +128,10 @@ class Content:
             "playerLabel": self.title,
             'focus': True,
             'action': self.msx_action(proxy=proxy, alternative_player=alternative_player),
-            'properties': {
-                'control:type': 'extended',
-                'button:content:icon': 'list-alt',
-                'button:content:action': f'player:content',
-                'button:content:enable': f'false',
-                'button:restart:icon': 'settings',
-                'button:restart:action': msx.player_action_btn(),
-                'button:speed:icon': 'replay',
-                'button:speed:action': 'player:restart',
-                'resume:key': self.title,
-                'trigger:ready': msx.format_action('/msx/play', params={'content_id': self.id}, module='execute')
-            }
         }
 
-        if self.videos is not None and len(self.videos) == 1 and alternative_player:
-            for st in self.videos[0].subtitles:
-                watch_button['properties'].update(st.to_msx_properties(proxy=proxy))
+        if self.videos is not None and len(self.videos) == 1:
+            watch_button['properties'] = self.videos[0].msx_properties(proxy=proxy, alternative_player=alternative_player)
 
         buttons = [watch_button] + buttons
 
@@ -227,18 +214,6 @@ class Content:
                 "layout": f"0,0,8,1",
                 'stampColor': 'msx-glass',
                 'playerLabel': self.title,
-                'properties': {
-                    'control:type': 'extended',
-                    'button:content:icon': 'list-alt',
-                    'button:content:action': f'player:content',
-                    'button:content:enable': f'false',
-                    'button:restart:icon': 'settings',
-                    'button:restart:action': msx.player_action_btn(),
-                    'button:speed:icon': 'replay',
-                    'button:speed:action': 'player:restart',
-                    'resume:key': self.title,
-                    'trigger:ready': msx.format_action('/msx/play', params={'content_id': self.id}, module='execute')
-                }
             },
             "items": [i.to_multivideo_entry(proxy=proxy, alternative_player=alternative_player) for i in self.videos]
         }
@@ -255,17 +230,6 @@ class Content:
                 "type": "button",
                 "layout": f"0,0,8,1",
                 'stampColor': 'msx-glass',
-                'properties': {
-                    'control:type': 'extended',
-                    'button:content:icon': 'list-alt',
-                    'button:content:action': f'player:content',
-                    'button:restart:icon': 'settings',
-                    'button:restart:action': msx.player_action_btn(),
-                    'button:speed:icon': 'replay',
-                    'button:speed:action': 'player:restart',
-                    'resume:key': '{context:resumeKey}',
-                    'trigger:ready': '{context:triggerReady}'
-                }
             },
             "items": season.to_episode_pages(proxy=proxy, alternative_player=alternative_player)
         }

@@ -21,9 +21,8 @@ class Season:
                 "playerLabel": episode.player_title(),
                 'action': episode.msx_action(proxy=proxy, alternative_player=alternative_player),
                 'stamp': '{ico:check}' if episode.watched else None,
-                'resumeKey': str(self.content_id) + ' ' + episode.player_title(),
-                'triggerReady': episode.trigger_ready(),
-                'focus': not episode.watched
+                'focus': not episode.watched,
+                'properties': episode.msx_properties(proxy=proxy, alternative_player=alternative_player)
             }
             items.append(entry)
         return items

@@ -1,51 +1,39 @@
 from urllib.parse import urlencode
 
 import config
+from models.Playable import Playable
 from models.SubtitleTrack import SubtitleTrack
+from util import msx
+from util.msx import content
 from util.proxy import remember_domain, make_proxy_url
 
-class Video:
+class Video(Playable):
 
-    def __init__(self, data):
+    def __init__(self, data, content_id, content_title):
+        super().__init__(data)
+
+        self.content_id = content_id
+        self.content_title = content_title
+
         self.title = data.get('title')
-
-        video_files = None
-        if config.QUALITY is not None:
-            video_files = [i for i in data.get('files', []) if i['quality'] == config.QUALITY]
-            if len(video_files) == 0:
-                video_files = None
-            else:
-                video_files = video_files[0]
-
-        if video_files is None:
-            video_files = sorted(data.get('files', []), key=lambda x: x.get('quality_id'))[-1]
-
-        self.video = video_files['url'][config.PROTOCOL]
-
-        self.subtitles = []
-        for subtitle_track in data.get('subtitles', []):
-            self.subtitles.append(SubtitleTrack(subtitle_track))
 
     def to_multivideo_entry(self, proxy: bool = False, alternative_player: bool = False):
         entry = {
             "label": self.title,
-            'action': self.msx_action(proxy=proxy, alternative_player=alternative_player)
+            'action': self.msx_action(proxy=proxy, alternative_player=alternative_player),
+            'properties': self.msx_properties(proxy=proxy, alternative_player=alternative_player)
         }
         return entry
 
-    def msx_action(self, proxy: bool = False, alternative_player : bool = False):
-        if proxy:
-            url = make_proxy_url(self.video)
-        else:
-            url = self.video
 
-        if alternative_player:
-            player = config.ALTERNATIVE_PLAYER
-        else:
-            player = config.PLAYER
+    def trigger_ready(self):
+        params = {
+            'content_id': self.content_id
+        }
+        return msx.format_action('/msx/play', params=params, module='execute')
 
-        if config.TIZEN:
-            return f'video:{url}'
-        else:
-            return f"video:plugin:{player}?" + urlencode({'url': url})
+    def resume_key(self):
+        return str(self.content_id) + ' ' + self.player_title() + ' ' + self.title
 
+    def player_title(self):
+        return self.content_title

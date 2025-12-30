@@ -5,6 +5,7 @@ import config
 client = MongoClient(config.MONGODB_URL)
 
 devices = client[config.MONGODB_COLLECTION]['devices']
+domains = client[config.MONGODB_COLLECTION]['domains']
 
 
 def get_device_by_id(device_id):
@@ -29,3 +30,16 @@ def update_tokens(token, param, param1):
 
 def delete_device(id):
     return devices.delete_one({'id': id})
+
+
+def update_device_user_agent(id, user_agent):
+    return devices.update_one({'id': id}, {'$set': {'user_agent': user_agent}})
+
+def update_device_settings(id, param):
+    return devices.update_one({'id': id}, {'$set': {'settings': param}})
+
+def get_domain(domain):
+    return domains.find_one({'domain': domain})
+
+def add_domain(domain):
+    return domains.insert_one({'domain': domain})

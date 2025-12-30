@@ -18,21 +18,15 @@ def update_device_tokens(id, token, refresh):
     return db.update_device_tokens(id, token, refresh)
 
 def update_device_user_agent(id, user_agent):
-    # return devices.update_one({'id': id}, {'$set': {'user_agent': user_agent}})
     return db.update_device_user_agent(id, user_agent)
 
-
 def update_device_settings(id, param):
-    # return devices.update_one({'id': id}, {'$set': {'settings': param}})
     return db.update_device_settings(id, param)
 
-
 def get_domain(domain):
-    # return domains.find_one({'domain': domain})
     return db.get_domain(domain)
 
 def add_domain(domain):
-    # domains.insert_one({'domain': domain})
     return db.add_domain(domain)
 
 def update_tokens(token, newToken, refresh):
